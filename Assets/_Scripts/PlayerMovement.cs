@@ -6,6 +6,7 @@ public class PlayerMovement : MonoBehaviour
     Rigidbody2D rb;
     float baseGravity;
     bool canJumpAgain = false;
+    int moveDirection;
 
     [SerializeField] int runspeed, jumpForce;
     [SerializeField] float lowJumpModifier, fallModifier;
@@ -20,63 +21,56 @@ public class PlayerMovement : MonoBehaviour
 
     private void Update()
     {
+        // On landing, reset canJumAgain
         var isGrounded = ComputeIsGrounded();
         if (isGrounded)
         {
             canJumpAgain = false;
         }
 
-        // Move left and right
-        var moveDirection = GetMoveDirection();
-        if (moveDirection != 0)
-        {
-            transform.localScale = new(moveDirection, 1, 1);
-        }
+        Move();
 
-        rb.velocity = (moveDirection * runspeed * Vector2.right) + (rb.velocity.y * Vector2.up);
-
-        // Jump
-        if (isGrounded && controller.GetJump())
-        {
-            Jump();
-            canJumpAgain = true;
-        }
         // Double jump
         if (canJumpAgain && controller.GetJumpDown())
         {
             Jump();
             canJumpAgain = false;
         }
-
+        // Jump
+        if (isGrounded && controller.GetJump())
+        {
+            Jump();
+            canJumpAgain = true;
+        }
+        
         // CHange gravity
         rb.gravityScale = GetGravity();
     }
 
-    private int GetMoveDirection()
+    private void Move()
     {
-        var returnVal = 0;
-
-        // Direction held down
-        if (controller.GetLeft())
-        {
-            returnVal = -1;
-        }
-        if (controller.GetRight())
-        {
-            returnVal = 1;
-        }
-
-        // Switching direction
+        // Computing move direction
         if (controller.GetLeftDown())
         {
-            returnVal = -1;
+            moveDirection = -1;
         }
         if (controller.GetRightDown())
         {
-            returnVal = 1;
+            moveDirection = 1;
+        }
+        if (!controller.GetLeft() && !controller.GetRight())
+        {
+            moveDirection = 0;
         }
 
-        return returnVal;
+        // Flipping character
+        if (moveDirection != 0)
+        {
+            transform.localScale = new(moveDirection, 1, 1);
+        }
+
+        // Moving character
+        rb.velocity = (moveDirection * runspeed * Vector2.right) + (rb.velocity.y * Vector2.up);
     }
     
     private float GetGravity()
