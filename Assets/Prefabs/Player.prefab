@@ -15,7 +15,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &5882406180151228763
 Transform:
   m_ObjectHideFlags: 0
@@ -47,7 +47,7 @@ GameObject:
   - component: {fileID: 957792599787164595}
   m_Layer: 0
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -67,6 +67,7 @@ Transform:
   m_Children:
   - {fileID: 4004928893175002657}
   - {fileID: 5882406180151228763}
+  - {fileID: 9048488296187835334}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &5672413731033843284
@@ -223,10 +224,45 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   runspeed: 5
   jumpForce: 8
+  baseAcceleration: 60
   lowJumpModifier: 1.5
   fallModifier: 1.5
+  punchHitBoxLength: 0.1
+  punchCooldown: 0.5
   groundCheck1: {fileID: 4004928893175002657}
   groundCheck2: {fileID: 5882406180151228763}
+  punch: {fileID: 9048488296187835334}
+--- !u!1 &3552025615009339246
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 9048488296187835334}
+  m_Layer: 0
+  m_Name: Punch
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!4 &9048488296187835334
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3552025615009339246}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.5625, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7933574515093183187}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &8813758614208986170
 GameObject:
   m_ObjectHideFlags: 0
@@ -242,7 +278,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &4004928893175002657
 Transform:
   m_ObjectHideFlags: 0

@@ -33,4 +33,9 @@ public class PlayerController : MonoBehaviour
     {
         return Input.GetKeyDown(jump);
     }
+
+    public bool GetAttackDown()
+    {
+        return Input.GetKeyDown(attack);
+    }
 }

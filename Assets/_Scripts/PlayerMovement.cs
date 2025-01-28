@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
@@ -5,18 +6,19 @@ public class PlayerMovement : MonoBehaviour
     PlayerController controller;
     Rigidbody2D rb;
     float baseGravity;
-    bool canJumpAgain = false;
-    int moveDirection;
+    bool canJumpAgain = false, isAttacking = false, isInCooldown = false, isInKnockback = false;
+    int moveDirection, acceleration;
 
-    [SerializeField] int runspeed, jumpForce;
-    [SerializeField] float lowJumpModifier, fallModifier;
-    [SerializeField] Transform groundCheck1, groundCheck2;
+    [SerializeField] int runspeed, jumpForce, baseAcceleration;
+    [SerializeField] float lowJumpModifier, fallModifier, punchHitBoxLength, punchCooldown;
+    [SerializeField] Transform groundCheck1, groundCheck2, punch;
 
     private void Start()
     {
         controller = GetComponent<PlayerController>();
         rb = GetComponent<Rigidbody2D>();
         baseGravity = rb.gravityScale;
+        acceleration = baseAcceleration;
     }
 
     private void Update()
@@ -31,20 +33,27 @@ public class PlayerMovement : MonoBehaviour
         Move();
 
         // Double jump
-        if (canJumpAgain && controller.GetJumpDown())
+        if (canJumpAgain && controller.GetJumpDown() && !isInKnockback)
         {
             Jump();
             canJumpAgain = false;
         }
         // Jump
-        if (isGrounded && controller.GetJump())
+        else if (isGrounded && controller.GetJump())
         {
             Jump();
             canJumpAgain = true;
         }
-        
-        // CHange gravity
-        rb.gravityScale = GetGravity();
+        // Change gravity
+        else
+        {
+            rb.gravityScale = GetGravity();
+        }
+
+        if (controller.GetAttackDown() && !isInCooldown)
+        {
+            StartCoroutine(Attack());
+        }
     }
 
     private void Move()
@@ -70,7 +79,8 @@ public class PlayerMovement : MonoBehaviour
         }
 
         // Moving character
-        rb.velocity = (moveDirection * runspeed * Vector2.right) + (rb.velocity.y * Vector2.up);
+        rb.velocity = Mathf.MoveTowards(rb.velocity.x, moveDirection * runspeed, acceleration * Time.deltaTime) * Vector2.right
+            + rb.velocity.y * Vector2.up;
     }
     
     private float GetGravity()
@@ -85,6 +95,13 @@ public class PlayerMovement : MonoBehaviour
         if (rb.velocity.y < 0)
         {
             returnVal += fallModifier;
+
+            // Recover from knockback
+            if (isInKnockback)
+            {
+                isInKnockback = false;
+                acceleration = baseAcceleration;
+            }
         }
 
         return returnVal;
@@ -92,6 +109,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void Jump()
     {
+        rb.gravityScale = baseGravity;
         rb.velocity = new(rb.velocity.x, 0);
         rb.AddForce(new(0, jumpForce), ForceMode2D.Impulse);
     }
@@ -118,5 +136,73 @@ public class PlayerMovement : MonoBehaviour
         }
 
         return false;
+    }
+
+    private IEnumerator Attack()
+    {
+        isInCooldown = true;
+        isAttacking = true;
+        StartCoroutine(StopAttacking());
+        StartCoroutine(StopCooldown());
+
+        // Sweetspot timing
+        var inHitbox = Physics2D.OverlapCircleAll(punch.position, 0.25f);
+        foreach (var hit in inHitbox)
+        {
+            if (hit.gameObject != gameObject && hit.CompareTag("Player"))
+            {
+                hit.gameObject.GetComponent<PlayerMovement>().TakeKnockback(8, (int)transform.localScale.x);
+                isAttacking = false;
+            }
+        }
+
+        // Sourspot timing
+        while (isAttacking)
+        {
+            inHitbox = Physics2D.OverlapCircleAll(punch.position, 0.25f);
+            foreach (var hit in inHitbox)
+            {
+                if (hit.gameObject != gameObject && hit.CompareTag("Player"))
+                {
+                    hit.gameObject.GetComponent<PlayerMovement>().TakeKnockback(4, (int)transform.localScale.x);
+                    isAttacking = false;
+                }
+            }
+
+            yield return null;
+        }
+
+        while (isInCooldown)
+        {
+            yield return null;
+        }
+    }
+
+    private IEnumerator StopAttacking()
+    {
+        yield return new WaitForSeconds(punchHitBoxLength);
+        isAttacking = false;
+    }
+
+    private IEnumerator StopCooldown()
+    {
+        yield return new WaitForSeconds(punchCooldown);
+        isInCooldown = false;
+    }
+
+    public void TakeKnockback(int baseKnockback, int attackDirection)
+    {
+        isInKnockback = true;
+
+        // If hit off the ground
+        if (ComputeIsGrounded())
+        {
+            canJumpAgain = true;
+        }
+
+        rb.gravityScale = baseGravity;
+        rb.velocity = Vector3.zero;
+        acceleration = 0;
+        rb.AddForce((baseKnockback * attackDirection * Vector2.right) + (baseKnockback * Vector2.up), ForceMode2D.Impulse);
     }
 }
