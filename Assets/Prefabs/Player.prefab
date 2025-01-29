@@ -227,11 +227,19 @@ MonoBehaviour:
   baseAcceleration: 60
   lowJumpModifier: 1.5
   fallModifier: 1.5
-  punchHitBoxLength: 0.1
-  punchCooldown: 0.5
   groundCheck1: {fileID: 4004928893175002657}
   groundCheck2: {fileID: 5882406180151228763}
-  punch: {fileID: 9048488296187835334}
+  attacks:
+  - attackName: punch
+    hitbox: {fileID: 9048488296187835334}
+    hitboxLength: 0.1
+    cooldown: 0.5
+    cancelOnGroundHit: 0
+  - attackName: kick
+    hitbox: {fileID: 5882406180151228763}
+    hitboxLength: 0.5
+    cooldown: 1
+    cancelOnGroundHit: 1
 --- !u!1 &3552025615009339246
 GameObject:
   m_ObjectHideFlags: 0

@@ -10,8 +10,9 @@ public class PlayerMovement : MonoBehaviour
     int moveDirection, acceleration;
 
     [SerializeField] int runspeed, jumpForce, baseAcceleration;
-    [SerializeField] float lowJumpModifier, fallModifier, punchHitBoxLength, punchCooldown;
-    [SerializeField] Transform groundCheck1, groundCheck2, punch;
+    [SerializeField] float lowJumpModifier, fallModifier;
+    [SerializeField] Transform groundCheck1, groundCheck2;
+    [SerializeField] Attack[] attacks;
 
     private void Start()
     {
@@ -25,7 +26,7 @@ public class PlayerMovement : MonoBehaviour
     {
         // On landing, reset canJumAgain
         var isGrounded = ComputeIsGrounded();
-        if (isGrounded)
+        if (canJumpAgain && isGrounded && !isInKnockback)
         {
             canJumpAgain = false;
         }
@@ -142,11 +143,15 @@ public class PlayerMovement : MonoBehaviour
     {
         isInCooldown = true;
         isAttacking = true;
-        StartCoroutine(StopAttacking());
-        StartCoroutine(StopCooldown());
+
+        var isGrounded = ComputeIsGrounded();
+        var attack = isGrounded ? attacks[0] : attacks[1];
+
+        StartCoroutine(StopAttacking(attack.hitboxLength));
+        StartCoroutine(StopCooldown(attack.cooldown));
 
         // Sweetspot timing
-        var inHitbox = Physics2D.OverlapCircleAll(punch.position, 0.25f);
+        var inHitbox = Physics2D.OverlapCircleAll(attack.hitbox.position, 0.25f);
         foreach (var hit in inHitbox)
         {
             if (hit.gameObject != gameObject && hit.CompareTag("Player"))
@@ -159,7 +164,7 @@ public class PlayerMovement : MonoBehaviour
         // Sourspot timing
         while (isAttacking)
         {
-            inHitbox = Physics2D.OverlapCircleAll(punch.position, 0.25f);
+            inHitbox = Physics2D.OverlapCircleAll(attack.hitbox.position, 0.25f);
             foreach (var hit in inHitbox)
             {
                 if (hit.gameObject != gameObject && hit.CompareTag("Player"))
@@ -167,6 +172,11 @@ public class PlayerMovement : MonoBehaviour
                     hit.gameObject.GetComponent<PlayerMovement>().TakeKnockback(4, (int)transform.localScale.x);
                     isAttacking = false;
                 }
+            }
+
+            if (attack.cancelOnGroundHit && ComputeIsGrounded())
+            {
+                isAttacking = false;
             }
 
             yield return null;
@@ -178,15 +188,15 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    private IEnumerator StopAttacking()
+    private IEnumerator StopAttacking(float hitBoxLength)
     {
-        yield return new WaitForSeconds(punchHitBoxLength);
+        yield return new WaitForSeconds(hitBoxLength);
         isAttacking = false;
     }
 
-    private IEnumerator StopCooldown()
+    private IEnumerator StopCooldown(float cooldown)
     {
-        yield return new WaitForSeconds(punchCooldown);
+        yield return new WaitForSeconds(cooldown);
         isInCooldown = false;
     }
 
