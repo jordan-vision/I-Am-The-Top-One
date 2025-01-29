@@ -7,7 +7,7 @@ public class PlayerMovement : MonoBehaviour
     Rigidbody2D rb;
     float baseGravity;
     bool canJumpAgain = false, isAttacking = false, isInCooldown = false, isInKnockback = false;
-    int moveDirection, acceleration;
+    int moveDirection, acceleration, hitsTaken = 0;
 
     [SerializeField] int runspeed, jumpForce, baseAcceleration;
     [SerializeField] float lowJumpModifier, fallModifier;
@@ -96,13 +96,6 @@ public class PlayerMovement : MonoBehaviour
         if (rb.velocity.y < 0)
         {
             returnVal += fallModifier;
-
-            // Recover from knockback
-            if (isInKnockback)
-            {
-                isInKnockback = false;
-                acceleration = baseAcceleration;
-            }
         }
 
         return returnVal;
@@ -156,7 +149,7 @@ public class PlayerMovement : MonoBehaviour
         {
             if (hit.gameObject != gameObject && hit.CompareTag("Player"))
             {
-                hit.gameObject.GetComponent<PlayerMovement>().TakeKnockback(8, (int)transform.localScale.x);
+                hit.gameObject.GetComponent<PlayerMovement>().TakeKnockback(attack.horizontalKnockback * 2, attack.verticalKnockback * 2, (int)transform.localScale.x);
                 isAttacking = false;
             }
         }
@@ -169,7 +162,7 @@ public class PlayerMovement : MonoBehaviour
             {
                 if (hit.gameObject != gameObject && hit.CompareTag("Player"))
                 {
-                    hit.gameObject.GetComponent<PlayerMovement>().TakeKnockback(4, (int)transform.localScale.x);
+                    hit.gameObject.GetComponent<PlayerMovement>().TakeKnockback(attack.horizontalKnockback, attack.verticalKnockback, (int)transform.localScale.x);
                     isAttacking = false;
                 }
             }
@@ -200,10 +193,8 @@ public class PlayerMovement : MonoBehaviour
         isInCooldown = false;
     }
 
-    public void TakeKnockback(int baseKnockback, int attackDirection)
+    public void TakeKnockback(int horizontalKnockback, int verticalKnockback, int attackDirection)
     {
-        isInKnockback = true;
-
         // If hit off the ground
         if (ComputeIsGrounded())
         {
@@ -213,6 +204,43 @@ public class PlayerMovement : MonoBehaviour
         rb.gravityScale = baseGravity;
         rb.velocity = Vector3.zero;
         acceleration = 0;
-        rb.AddForce((baseKnockback * attackDirection * Vector2.right) + (baseKnockback * Vector2.up), ForceMode2D.Impulse);
+        rb.AddForce(((horizontalKnockback + hitsTaken) * attackDirection * Vector2.right) 
+            + ((verticalKnockback + ((verticalKnockback > 0) ? hitsTaken : -hitsTaken)) * Vector2.up),
+            ForceMode2D.Impulse);
+
+        if (verticalKnockback > 0)
+        {
+            StartCoroutine(KnockbackTillFalling());
+        } 
+        else
+        {
+            StartCoroutine(KnockbackTillLanded());
+        }
+
+        hitsTaken++;
+    }
+
+    private IEnumerator KnockbackTillFalling()
+    {
+        isInKnockback = true;
+        while (rb.velocity.y > 0)
+        {
+            yield return null;
+        }
+
+        isInKnockback = false;
+        acceleration = baseAcceleration;
+    }
+
+    private IEnumerator KnockbackTillLanded()
+    {
+        isInKnockback = true;
+        while (!ComputeIsGrounded())
+        {
+            yield return null;
+        }
+
+        isInKnockback = false;
+        acceleration = baseAcceleration;
     }
 }
