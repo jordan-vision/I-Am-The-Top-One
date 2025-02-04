@@ -1,25 +1,35 @@
 using System.Collections;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerMovement : MonoBehaviour
 {
     PlayerController controller;
     Rigidbody2D rb;
+    SpriteRenderer spriteRenderer;
     float baseGravity;
     bool canJumpAgain = false, isAttacking = false, isInCooldown = false, isInKnockback = false;
-    int moveDirection, acceleration, hitsTaken = 0;
+    int moveDirection, acceleration, hitsTaken = 0, score;
 
     [SerializeField] int runspeed, jumpForce, baseAcceleration;
     [SerializeField] float lowJumpModifier, fallModifier;
     [SerializeField] Transform groundCheck1, groundCheck2;
     [SerializeField] Attack[] attacks;
+    [SerializeField] Image pointsImage;
+    [SerializeField] TextMeshProUGUI pointsText;
 
     private void Start()
     {
         controller = GetComponent<PlayerController>();
         rb = GetComponent<Rigidbody2D>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
+
         baseGravity = rb.gravityScale;
         acceleration = baseAcceleration;
+
+        pointsImage.color = spriteRenderer.color;
+        pointsText.color = spriteRenderer.color;
     }
 
     private void Update()
@@ -242,5 +252,22 @@ public class PlayerMovement : MonoBehaviour
 
         isInKnockback = false;
         acceleration = baseAcceleration;
+    }
+
+    public void GainPoints(int value)
+    {
+        score += value;
+        UpdateScoreText();
+    }
+
+    public void LosePoints(int value)
+    {
+        score -= value;
+        UpdateScoreText();
+    }
+
+    private void UpdateScoreText()
+    {
+        pointsText.text = $"{score} pts";
     }
 }

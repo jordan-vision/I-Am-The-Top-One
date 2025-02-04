@@ -1,23 +1,35 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
-    void Update()
+    public static GameManager Instance;
+    public PlayerMovement Player1, Player2;
+
+    private void Awake()
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (Instance == null)
         {
-            Application.Quit();
+            Instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
         }
 
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-        }
+        DontDestroyOnLoad(gameObject);
     }
 
     private void Start()
     {
         Screen.SetResolution(1920, 1080, FullScreenMode.FullScreenWindow);
     }
+
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            Application.Quit();
+        }
+    }
+    
 }
