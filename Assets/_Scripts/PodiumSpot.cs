@@ -30,4 +30,10 @@ public class PodiumSpot : MonoBehaviour
             spriteRenderer.color = claimedPlayer.GetComponent<SpriteRenderer>().color;
         }
     }
+
+    public void Reset()
+    {
+        claimedPlayer = null;
+        spriteRenderer.color = Color.white;
+    }
 }

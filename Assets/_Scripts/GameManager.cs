@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    float roundTimer = 20;
+    float roundTimer = 10;
 
     [SerializeField] private PodiumSpot[] podiumSpots;
 
@@ -61,7 +61,13 @@ public class GameManager : MonoBehaviour
             Debug.Log("Tie");
         }
 
-        // Resetting points and stage
-        Player1.
+        // Resetting player and stage
+        Player1.ResetPlayer();
+        Player2.ResetPlayer();
+
+        foreach (var spot in podiumSpots)
+        {
+            spot.Reset();
+        }
     }
 }

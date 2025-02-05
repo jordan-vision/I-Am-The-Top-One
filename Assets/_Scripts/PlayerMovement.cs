@@ -8,9 +8,10 @@ public class PlayerMovement : MonoBehaviour
     PlayerController controller;
     Rigidbody2D rb;
     SpriteRenderer spriteRenderer;
+    Vector3 spawnPoint, spawnScale;
     float baseGravity;
     bool canJumpAgain = false, isAttacking = false, isInCooldown = false, isInKnockback = false;
-    int moveDirection, acceleration, hitsTaken = 0;
+    int moveDirection, acceleration, hitsTaken = 0, score;
 
     [SerializeField] int runspeed, jumpForce, baseAcceleration;
     [SerializeField] float lowJumpModifier, fallModifier;
@@ -20,11 +21,11 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] TextMeshProUGUI pointsText;
 
     public int Score 
-    { 
-        get { return Score; } 
+    {
+        get { return score; }
         private set 
         {
-            Score = value;
+            score = value;
             UpdateScoreText();
         }
     }
@@ -40,6 +41,9 @@ public class PlayerMovement : MonoBehaviour
 
         pointsImage.color = spriteRenderer.color;
         pointsText.color = spriteRenderer.color;
+
+        spawnPoint = transform.position;
+        spawnScale = transform.localScale;
     }
 
     private void Update()
@@ -267,23 +271,33 @@ public class PlayerMovement : MonoBehaviour
     public void GainPoints(int value)
     {
         Score += value;
-        UpdateScoreText();
     }
 
     public void LosePoints(int value)
     {
         Score -= value;
-        UpdateScoreText();
-    }
-
-    public void Reset()
-    {
-        Score = 0;
-        UpdateScoreText();
     }
 
     private void UpdateScoreText()
     {
         pointsText.text = $"{Score} pts";
+    }
+
+    public void ResetPlayer()
+    {
+        Score = 0;
+        hitsTaken = 0;
+
+        transform.position = spawnPoint;
+        transform.localScale = spawnScale;
+
+        rb.velocity = Vector2.zero;
+        rb.gravityScale = baseGravity;
+
+        canJumpAgain = false;
+        isAttacking = false;
+        isInCooldown = false;
+        isInKnockback = false;
+        acceleration = baseAcceleration;
     }
 }
