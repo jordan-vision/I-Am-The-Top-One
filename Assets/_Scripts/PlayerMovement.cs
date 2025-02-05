@@ -286,7 +286,7 @@ public class PlayerMovement : MonoBehaviour
     public void ResetPlayer()
     {
         Score = 0;
-        hitsTaken = 0;
+        //hitsTaken = 0;
 
         transform.position = spawnPoint;
         transform.localScale = spawnScale;
