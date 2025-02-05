@@ -36,4 +36,10 @@ public class PodiumSpot : MonoBehaviour
         claimedPlayer = null;
         spriteRenderer.color = Color.white;
     }
+
+    public void SetPointValue(int value)
+    {
+        pointValue = value;
+        text.text = $"+{pointValue}";
+    }
 }
