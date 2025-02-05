@@ -10,7 +10,7 @@ public class PlayerMovement : MonoBehaviour
     SpriteRenderer spriteRenderer;
     float baseGravity;
     bool canJumpAgain = false, isAttacking = false, isInCooldown = false, isInKnockback = false;
-    int moveDirection, acceleration, hitsTaken = 0, score;
+    int moveDirection, acceleration, hitsTaken = 0;
 
     [SerializeField] int runspeed, jumpForce, baseAcceleration;
     [SerializeField] float lowJumpModifier, fallModifier;
@@ -18,6 +18,16 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] Attack[] attacks;
     [SerializeField] Image pointsImage;
     [SerializeField] TextMeshProUGUI pointsText;
+
+    public int Score 
+    { 
+        get { return Score; } 
+        private set 
+        {
+            Score = value;
+            UpdateScoreText();
+        }
+    }
 
     private void Start()
     {
@@ -256,18 +266,24 @@ public class PlayerMovement : MonoBehaviour
 
     public void GainPoints(int value)
     {
-        score += value;
+        Score += value;
         UpdateScoreText();
     }
 
     public void LosePoints(int value)
     {
-        score -= value;
+        Score -= value;
+        UpdateScoreText();
+    }
+
+    public void Reset()
+    {
+        Score = 0;
         UpdateScoreText();
     }
 
     private void UpdateScoreText()
     {
-        pointsText.text = $"{score} pts";
+        pointsText.text = $"{Score} pts";
     }
 }
