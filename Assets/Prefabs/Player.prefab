@@ -223,7 +223,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   runspeed: 5
-  jumpForce: 8
+  jumpForce: 7
+  doubleJumpForce: 9
   baseAcceleration: 60
   lowJumpModifier: 1.5
   fallModifier: 1.5
@@ -233,7 +234,7 @@ MonoBehaviour:
   - attackName: punch
     hitbox: {fileID: 9048488296187835334}
     hitboxLength: 0.1
-    cooldown: 0.5
+    cooldown: 0.3
     horizontalKnockback: 4
     verticalKnockback: 2
     cancelOnGroundHit: 0
@@ -244,6 +245,8 @@ MonoBehaviour:
     horizontalKnockback: 4
     verticalKnockback: -1
     cancelOnGroundHit: 1
+  pointsImage: {fileID: 0}
+  pointsText: {fileID: 0}
 --- !u!1 &3552025615009339246
 GameObject:
   m_ObjectHideFlags: 0

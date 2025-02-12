@@ -13,7 +13,7 @@ public class PlayerMovement : MonoBehaviour
     bool canJumpAgain = false, isAttacking = false, isInCooldown = false, isInKnockback = false;
     int moveDirection, acceleration, hitsTaken = 0, roundScore, gameScore;
 
-    [SerializeField] int runspeed, jumpForce, baseAcceleration;
+    [SerializeField] int runspeed, jumpForce, doubleJumpForce, baseAcceleration;
     [SerializeField] float lowJumpModifier, fallModifier;
     [SerializeField] Transform groundCheck1, groundCheck2;
     [SerializeField] Attack[] attacks;
@@ -88,13 +88,13 @@ public class PlayerMovement : MonoBehaviour
         // Double jump
         if (canJumpAgain && controller.GetJumpDown() && !isInKnockback)
         {
-            Jump();
+            Jump(doubleJumpForce);
             canJumpAgain = false;
         }
         // Jump
         else if (isGrounded && controller.GetJump())
         {
-            Jump();
+            Jump(jumpForce);
             canJumpAgain = true;
         }
         // Change gravity
@@ -132,11 +132,11 @@ public class PlayerMovement : MonoBehaviour
         return returnVal;
     }
 
-    private void Jump()
+    private void Jump(int verticalForce)
     {
         rb.gravityScale = baseGravity;
         rb.velocity = new(rb.velocity.x, 0);
-        rb.AddForce(new(0, jumpForce), ForceMode2D.Impulse);
+        rb.AddForce(new(0, verticalForce), ForceMode2D.Impulse);
     }
 
     private bool ComputeIsGrounded()
@@ -293,7 +293,6 @@ public class PlayerMovement : MonoBehaviour
     public void ResetPlayer()
     {
         gameScore += RoundScore;
-        Debug.Log($"{gameObject.name}: {gameScore}");
         RoundScore = 0;
 
         transform.position = spawnPoint;

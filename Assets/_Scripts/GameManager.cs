@@ -9,6 +9,7 @@ public class GameManager : MonoBehaviour
     float roundTimer = 15;
     bool isRoundEnding = false;
     Dictionary<(int, int), int> pointTable;
+    int roundNumber = 1;
 
     [SerializeField] PodiumSpot[] podiumSpots;
     [SerializeField] Image timerImage;
@@ -98,11 +99,18 @@ public class GameManager : MonoBehaviour
 
         yield return new WaitForSeconds(1.0f);
 
-        NewRound();
+        if (roundNumber == 10)
+        {
+            EndGame();
+        } else
+        {
+            NewRound();
+        }
     }
 
     private void NewRound()
     {
+        roundNumber++;
         roundTimer = 15;
 
         foreach (var spot in podiumSpots)
@@ -217,5 +225,11 @@ public class GameManager : MonoBehaviour
     public PlayerMovement OtherPlayer(PlayerMovement caller)
     {
         return (caller == Player1) ? Player2 : Player1;
+    }
+
+    private void EndGame()
+    {
+        Debug.Log($"{Player1.name}, {Player1.GameScore}");
+        Debug.Log($"{Player2.name}, {Player2.GameScore}");
     }
 }
