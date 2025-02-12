@@ -11,7 +11,7 @@ public class PlayerMovement : MonoBehaviour
     Vector3 spawnPoint, spawnScale;
     float baseGravity;
     bool canJumpAgain = false, isAttacking = false, isInCooldown = false, isInKnockback = false;
-    int moveDirection, acceleration, hitsTaken = 0, score;
+    int moveDirection, acceleration, hitsTaken = 0, roundScore, gameScore;
 
     [SerializeField] int runspeed, jumpForce, baseAcceleration;
     [SerializeField] float lowJumpModifier, fallModifier;
@@ -20,15 +20,17 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] Image pointsImage;
     [SerializeField] TextMeshProUGUI pointsText;
 
-    public int Score 
+    public int RoundScore 
     {
-        get { return score; }
+        get { return roundScore; }
         private set 
         {
-            score = value;
+            roundScore = value;
             UpdateScoreText();
         }
     }
+
+    public int GameScore => gameScore;
 
     private void Start()
     {
@@ -48,14 +50,40 @@ public class PlayerMovement : MonoBehaviour
 
     private void Update()
     {
+        ManageVertical();
+        Move();
+        CheckForFlip();
+    }
+
+    private void Move()
+    {
+        // Computing move direction
+        if (controller.GetLeftDown())
+        {
+            moveDirection = -1;
+        }
+        if (controller.GetRightDown())
+        {
+            moveDirection = 1;
+        }
+        if (!controller.GetLeft() && !controller.GetRight())
+        {
+            moveDirection = 0;
+        }
+
+        // Moving character
+        rb.velocity = Mathf.MoveTowards(rb.velocity.x, moveDirection * runspeed, acceleration * Time.deltaTime) * Vector2.right
+            + rb.velocity.y * Vector2.up;
+    }
+
+    private void ManageVertical()
+    {
         // On landing, reset canJumAgain
         var isGrounded = ComputeIsGrounded();
         if (canJumpAgain && isGrounded && !isInKnockback)
         {
             canJumpAgain = false;
         }
-
-        Move();
 
         // Double jump
         if (canJumpAgain && controller.GetJumpDown() && !isInKnockback)
@@ -81,31 +109,10 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    private void Move()
+    public void CheckForFlip()
     {
-        // Computing move direction
-        if (controller.GetLeftDown())
-        {
-            moveDirection = -1;
-        }
-        if (controller.GetRightDown())
-        {
-            moveDirection = 1;
-        }
-        if (!controller.GetLeft() && !controller.GetRight())
-        {
-            moveDirection = 0;
-        }
-
-        // Flipping character
-        if (moveDirection != 0)
-        {
-            transform.localScale = new(moveDirection, 1, 1);
-        }
-
-        // Moving character
-        rb.velocity = Mathf.MoveTowards(rb.velocity.x, moveDirection * runspeed, acceleration * Time.deltaTime) * Vector2.right
-            + rb.velocity.y * Vector2.up;
+        var faceLeft = GameManager.Instance.OtherPlayer(this).transform.position.x < transform.position.x;
+        transform.localScale = new(faceLeft ? -1 : 1, 1, 1);
     }
     
     private float GetGravity()
@@ -270,23 +277,24 @@ public class PlayerMovement : MonoBehaviour
 
     public void GainPoints(int value)
     {
-        Score += value;
+        RoundScore += value;
     }
 
     public void LosePoints(int value)
     {
-        Score -= value;
+        RoundScore -= value;
     }
 
     private void UpdateScoreText()
     {
-        pointsText.text = $"{Score} pts";
+        pointsText.text = $"{RoundScore} pts";
     }
 
     public void ResetPlayer()
     {
-        Score = 0;
-        //hitsTaken = 0;
+        gameScore += RoundScore;
+        Debug.Log($"{gameObject.name}: {gameScore}");
+        RoundScore = 0;
 
         transform.position = spawnPoint;
         transform.localScale = spawnScale;

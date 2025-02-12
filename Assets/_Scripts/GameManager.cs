@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
@@ -5,6 +7,8 @@ using UnityEngine.UI;
 public class GameManager : MonoBehaviour
 {
     float roundTimer = 15;
+    bool isRoundEnding = false;
+    Dictionary<(int, int), int> pointTable;
 
     [SerializeField] PodiumSpot[] podiumSpots;
     [SerializeField] Image timerImage;
@@ -29,6 +33,41 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         Screen.SetResolution(1920, 1080, FullScreenMode.FullScreenWindow);
+
+        // Setting points table
+        pointTable = new Dictionary<(int, int), int>();
+
+        // 3 spots
+        pointTable[(3, 1)] = 7;
+        pointTable[(3, 2)] = 15;
+        pointTable[(3, 3)] = 23;
+
+        // 5 spots
+        pointTable[(5, 1)] = 3;
+        pointTable[(5, 2)] = 6;
+        pointTable[(5, 3)] = 9;
+        pointTable[(5, 4)] = 12;
+        pointTable[(5, 5)] = 15;
+
+        // 7 spots
+        pointTable[(7, 1)] = 1;
+        pointTable[(7, 2)] = 3;
+        pointTable[(7, 3)] = 5;
+        pointTable[(7, 4)] = 6;
+        pointTable[(7, 5)] = 7;
+        pointTable[(7, 6)] = 9;
+        pointTable[(7, 7)] = 11;
+
+        // 9 spots
+        pointTable[(9, 1)] = 1;
+        pointTable[(9, 2)] = 2;
+        pointTable[(9, 3)] = 3;
+        pointTable[(9, 4)] = 4;
+        pointTable[(9, 5)] = 5;
+        pointTable[(9, 6)] = 6;
+        pointTable[(9, 7)] = 7;
+        pointTable[(9, 8)] = 8;
+        pointTable[(9, 9)] = 9;
     }
 
     void Update()
@@ -41,33 +80,30 @@ public class GameManager : MonoBehaviour
         roundTimer -= Time.deltaTime;
         timerImage.fillAmount = roundTimer / 15.0f;
 
-        if (roundTimer <= 0)
+        if (roundTimer <= 0 && !isRoundEnding)
         {
-            NewRound();
+            StartCoroutine(EndRound());
         }
     }
     
-    private void NewRound()
+    private IEnumerator EndRound()
     {
-        // Determining winner
-        roundTimer = 15;
-
-        if (Player1.Score > Player2.Score)
-        {
-            Debug.Log("Player 1 wins");
-        }
-        else if (Player1.Score < Player2.Score)
-        {
-            Debug.Log("Player 2 wins");
-        }
-        else
-        {
-            Debug.Log("Tie");
-        }
+        isRoundEnding = true;
 
         // Resetting player and stage
         Player1.ResetPlayer();
         Player2.ResetPlayer();
+        Player1.gameObject.SetActive(false);
+        Player2.gameObject.SetActive(false);
+
+        yield return new WaitForSeconds(1.0f);
+
+        NewRound();
+    }
+
+    private void NewRound()
+    {
+        roundTimer = 15;
 
         foreach (var spot in podiumSpots)
         {
@@ -75,6 +111,11 @@ public class GameManager : MonoBehaviour
         }
 
         BuildStage();
+
+        Player1.gameObject.SetActive(true);
+        Player2.gameObject.SetActive(true);
+
+        isRoundEnding = false;
     }
 
     private void BuildStage()
@@ -92,7 +133,12 @@ public class GameManager : MonoBehaviour
 
             var xPosition = leftmost + i * spotWidth;
             var yPosition = -5.25f + (float)(heightList[i] - 1) / (activeSpots - 1) * 3.0f;
-            podiumSpots[i].SetPointValue(heightList[i]);
+
+            if (pointTable.ContainsKey((activeSpots, heightList[i])))
+            {
+                podiumSpots[i].SetPointValue(pointTable[(activeSpots, heightList[i])]);
+            }
+
             spotTransform.parent.position = new(xPosition, yPosition);
         }
     }
@@ -166,5 +212,10 @@ public class GameManager : MonoBehaviour
         }
 
         return heightList;
+    }
+
+    public PlayerMovement OtherPlayer(PlayerMovement caller)
+    {
+        return (caller == Player1) ? Player2 : Player1;
     }
 }
