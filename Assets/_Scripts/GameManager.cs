@@ -2,12 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
     float roundTimer = 15;
-    bool isRoundEnding = false;
+    bool isRoundEnding = false, tempFreeze;
     Dictionary<(int, int), int> pointTable;
     int roundNumber = 1;
 
@@ -16,6 +17,7 @@ public class GameManager : MonoBehaviour
 
     public static GameManager Instance;
     public PlayerMovement Player1, Player2;
+    public UI Interface;
 
     private void Awake()
     {
@@ -27,8 +29,6 @@ public class GameManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
-
-        DontDestroyOnLoad(gameObject);
     }
 
     private void Start()
@@ -84,6 +84,11 @@ public class GameManager : MonoBehaviour
         if (roundTimer <= 0 && !isRoundEnding)
         {
             StartCoroutine(EndRound());
+        }
+
+        if (roundNumber == 10 && Input.GetKey(KeyCode.R))
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         }
     }
     
@@ -231,5 +236,17 @@ public class GameManager : MonoBehaviour
     {
         Debug.Log($"{Player1.name}, {Player1.GameScore}");
         Debug.Log($"{Player2.name}, {Player2.GameScore}");
+        Interface.ShowEndScreen(Player1, Player2);
+    }
+
+    public IEnumerator FreezePlayers(float time)
+    {
+        Player1.Freeze();
+        Player2.Freeze();
+
+        yield return new WaitForSeconds(time);
+
+        Player1.Unfreeze();
+        Player2.Unfreeze();
     }
 }

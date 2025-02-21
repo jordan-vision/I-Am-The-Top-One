@@ -9,8 +9,9 @@ public class PlayerMovement : MonoBehaviour
     Rigidbody2D rb;
     SpriteRenderer spriteRenderer;
     Vector3 spawnPoint, spawnScale;
+    Vector2 storedVelocity;
     float baseGravity;
-    bool canJumpAgain = false, isAttacking = false, isInCooldown = false, isInKnockback = false;
+    bool canJumpAgain = false, isAttacking = false, isInCooldown = false, isInKnockback = false, frozen = false;
     int moveDirection, acceleration, hitsTaken = 0, roundScore, gameScore;
 
     [SerializeField] int runspeed, jumpForce, doubleJumpForce, baseAcceleration;
@@ -50,6 +51,11 @@ public class PlayerMovement : MonoBehaviour
 
     private void Update()
     {
+        if (frozen)
+        {
+            return;
+        }
+
         ManageVertical();
         Move();
         CheckForFlip();
@@ -180,7 +186,7 @@ public class PlayerMovement : MonoBehaviour
         {
             if (hit.gameObject != gameObject && hit.CompareTag("Player"))
             {
-                hit.gameObject.GetComponent<PlayerMovement>().TakeKnockback(attack.horizontalKnockback * 2, attack.verticalKnockback * 2, (int)transform.localScale.x);
+                hit.gameObject.GetComponent<PlayerMovement>().TakeKnockback(attack.horizontalKnockback * 2, attack.verticalKnockback * 2, (int)transform.localScale.x, true);
                 isAttacking = false;
             }
         }
@@ -193,7 +199,7 @@ public class PlayerMovement : MonoBehaviour
             {
                 if (hit.gameObject != gameObject && hit.CompareTag("Player"))
                 {
-                    hit.gameObject.GetComponent<PlayerMovement>().TakeKnockback(attack.horizontalKnockback, attack.verticalKnockback, (int)transform.localScale.x);
+                    hit.gameObject.GetComponent<PlayerMovement>().TakeKnockback(attack.horizontalKnockback, attack.verticalKnockback, (int)transform.localScale.x, false);
                     isAttacking = false;
                 }
             }
@@ -224,8 +230,13 @@ public class PlayerMovement : MonoBehaviour
         isInCooldown = false;
     }
 
-    public void TakeKnockback(int horizontalKnockback, int verticalKnockback, int attackDirection)
+    public void TakeKnockback(int horizontalKnockback, int verticalKnockback, int attackDirection, bool freeze)
     {
+        if (isInKnockback)
+        {
+            return;
+        }
+
         // If hit off the ground
         if (ComputeIsGrounded())
         {
@@ -235,20 +246,25 @@ public class PlayerMovement : MonoBehaviour
         rb.gravityScale = baseGravity;
         rb.velocity = Vector3.zero;
         acceleration = 0;
-        rb.AddForce(((horizontalKnockback + hitsTaken) * attackDirection * Vector2.right) 
-            + ((verticalKnockback + ((verticalKnockback > 0) ? hitsTaken : -hitsTaken)) * Vector2.up),
-            ForceMode2D.Impulse);
+        var force = ((horizontalKnockback + hitsTaken) * attackDirection * Vector2.right)
+            + ((verticalKnockback + ((verticalKnockback > 0) ? hitsTaken : -hitsTaken)) * Vector2.up);
+        rb.AddForce(force, ForceMode2D.Impulse);
 
         if (verticalKnockback > 0)
         {
             StartCoroutine(KnockbackTillFalling());
-        } 
+        }
         else
         {
             StartCoroutine(KnockbackTillLanded());
         }
 
         hitsTaken++;
+
+        if (freeze && !frozen)
+        {
+            StartCoroutine(GameManager.Instance.FreezePlayers(Mathf.Min(force.sqrMagnitude / 2000, 0.5f)));
+        }
     }
 
     private IEnumerator KnockbackTillFalling()
@@ -260,7 +276,9 @@ public class PlayerMovement : MonoBehaviour
         }
 
         isInKnockback = false;
+        Debug.Log(acceleration);
         acceleration = baseAcceleration;
+        Debug.Log(acceleration);
     }
 
     private IEnumerator KnockbackTillLanded()
@@ -292,6 +310,11 @@ public class PlayerMovement : MonoBehaviour
 
     public void ResetPlayer()
     {
+        if (frozen)
+        {
+            Unfreeze();
+        }
+
         gameScore += RoundScore;
         RoundScore = 0;
 
@@ -306,5 +329,20 @@ public class PlayerMovement : MonoBehaviour
         isInCooldown = false;
         isInKnockback = false;
         acceleration = baseAcceleration;
+    }
+
+    public void Freeze()
+    {
+        storedVelocity = rb.velocity;
+        rb.velocity = Vector2.zero;
+        rb.isKinematic = true;
+        frozen = true;
+    }
+
+    public void Unfreeze()
+    {
+        rb.velocity = storedVelocity;
+        rb.isKinematic = false;
+        frozen = false;
     }
 }
