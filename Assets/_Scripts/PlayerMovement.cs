@@ -21,6 +21,8 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] Image pointsImage;
     [SerializeField] TextMeshProUGUI pointsText;
 
+    public PlayerController Controller => controller;
+
     public int RoundScore 
     {
         get { return roundScore; }
@@ -47,6 +49,9 @@ public class PlayerMovement : MonoBehaviour
 
         spawnPoint = transform.position;
         spawnScale = transform.localScale;
+
+        controller.Setup();
+
     }
 
     private void Update()
@@ -64,15 +69,16 @@ public class PlayerMovement : MonoBehaviour
     private void Move()
     {
         // Computing move direction
-        if (controller.GetLeftDown())
+        if (controller.GetLeft())
         {
+            Debug.Log("hah");
             moveDirection = -1;
         }
-        if (controller.GetRightDown())
+        if (controller.GetRight())
         {
             moveDirection = 1;
         }
-        if (!controller.GetLeft() && !controller.GetRight())
+        else
         {
             moveDirection = 0;
         }

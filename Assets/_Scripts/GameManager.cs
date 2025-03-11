@@ -8,7 +8,7 @@ using UnityEngine.UI;
 public class GameManager : MonoBehaviour
 {
     float roundTimer = 15;
-    bool isRoundEnding = false, tempFreeze;
+    bool isRoundEnding = false;
     Dictionary<(int, int), int> pointTable;
     int roundNumber = 1;
 
@@ -86,7 +86,7 @@ public class GameManager : MonoBehaviour
             StartCoroutine(EndRound());
         }
 
-        if (roundNumber == 10 && Input.GetKey(KeyCode.R))
+        if (roundNumber == 8 && Input.GetKey(KeyCode.R))
         {
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         }
@@ -104,7 +104,7 @@ public class GameManager : MonoBehaviour
 
         yield return new WaitForSeconds(1.0f);
 
-        if (roundNumber == 10)
+        if (roundNumber == 8)
         {
             EndGame();
         } else
