@@ -71,10 +71,9 @@ public class PlayerMovement : MonoBehaviour
         // Computing move direction
         if (controller.GetLeft())
         {
-            Debug.Log("hah");
             moveDirection = -1;
         }
-        if (controller.GetRight())
+        else if (controller.GetRight())
         {
             moveDirection = 1;
         }
@@ -282,9 +281,7 @@ public class PlayerMovement : MonoBehaviour
         }
 
         isInKnockback = false;
-        Debug.Log(acceleration);
         acceleration = baseAcceleration;
-        Debug.Log(acceleration);
     }
 
     private IEnumerator KnockbackTillLanded()

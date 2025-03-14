@@ -88,6 +88,7 @@ public class GameManager : MonoBehaviour
 
         if (roundNumber == 8 && Input.GetKey(KeyCode.R))
         {
+            PlayerController.Reset();
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         }
     }
